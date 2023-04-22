@@ -63,8 +63,6 @@ func main(){
   check(err)
   defer f.Close()
 
-  pterm.DefaultBasicText.Println("Hello, World!")
-
   for {
     isSame := check_same_file(filePath, dstPath)
     if isSame {
@@ -77,11 +75,8 @@ func main(){
   endTime := time.Now()
   elapsedTime := endTime.Sub(startTime)
 
+  pterm.DefaultBasicText.Println("DONE!!!")
   showStr := fmt.Sprintf("\n Time: %s", elapsedTime)
-
-  str, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("The End")).Srender()
-  str = pterm.DefaultCenter.Sprint(str)
-  area.Update(str)
   
   pterm.DefaultBasicText.Println(showStr)
   time.Sleep(1 * time.Millisecond)
