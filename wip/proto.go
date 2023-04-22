@@ -5,8 +5,10 @@ import (
   "time"
   // "bufio"
   "io/ioutil"
+  "net/http"
   "os"
   "os/exec"
+  "encoding/json"
   "github.com/pterm/pterm"
 )
 
@@ -17,11 +19,19 @@ func check(e error) {
   }
 }
 
+type Post struct {
+  Src string `json:"src"`
+  Dst string `json:"dst"`
+}
+
+func (me *Post) String() string {
+  return fmt.Sprintf("\n===Src===\n%s \n ===Dst=== \n%s", me.Src, me.Dst)
+}
+
 
 func check_same_file(pathA string, pathB string) (bool) {
   contA, errA := ioutil.ReadFile(pathA)
   contB, errB := ioutil.ReadFile(pathB)
-
   if errA != nil || errB != nil {
     return false;
   }
@@ -32,6 +42,32 @@ func check_same_file(pathA string, pathB string) (bool) {
     return false;
   }
 }
+
+func fetch_challenge(idx int, srcPath string, dstPath string) {
+  url := fmt.Sprintf("http://127.0.0.1:8000/typing_challenge?idx=%d", idx)
+  res, err := http.Get(url)
+  check(err)
+  defer res.Body.Close()
+  
+
+  var cont Post
+  body, _ := ioutil.ReadAll(res.Body)
+  err = json.Unmarshal(body, &cont)
+  check(err)
+  pterm.DefaultBasicText.Println(cont.Src)
+  pterm.DefaultBasicText.Println(cont.Dst)
+
+  file, err := os.Create(srcPath)
+  check(err)
+  _, err = file.WriteString(cont.Src)
+  check(err)
+
+  file, err = os.Create(dstPath)
+  check(err)
+  _, err = file.WriteString(cont.Dst)
+  check(err)
+}
+
 
 
 func main(){
@@ -49,6 +85,14 @@ func main(){
     time.Sleep(time.Second)
   }
 
+  chFetch := make(chan bool)
+    select {
+      case isFinish := <- chFetch:
+          pterm.DefaultBasicText.Println("FETCH DONE!!!")
+      default:
+    }
+
+
   startTime := time.Now()
 
   srcPath := "i.txt"
@@ -58,6 +102,9 @@ func main(){
   cmd := exec.Command("cp", srcPath, filePath)
   _, err := cmd.Output()
   check(err)
+
+  // hogehogehoge
+  fetch_challenge(0, srcPath, dstPath)
 
   f, err := os.Open(filePath)
   check(err)
