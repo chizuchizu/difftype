@@ -20,4 +20,4 @@
 # Go workspace file
 go.work
 
-*/__pychace__
+*/__pychace__/*

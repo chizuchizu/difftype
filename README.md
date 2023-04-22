@@ -6,3 +6,10 @@
 cd api
 uvicorn main:app --reload
 ```
+
+## Requirements
+
+```shell
+pip install fastapi
+pip install "uvicorn[standard]"
+```
