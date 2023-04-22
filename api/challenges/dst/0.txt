@@ -1,0 +1,6 @@
+for i in range(8):
+  print(1)
+  # print("hogehoge")
+  # a = 1
+  # b = 2
+  # c = 3
