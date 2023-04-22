@@ -43,7 +43,7 @@ func check_same_file(pathA string, pathB string) (bool) {
   }
 }
 
-func fetch_challenge(idx int, srcPath string, dstPath string) {
+func fetch_challenge(idx int, srcPath string, dstPath string, ch chan bool) {
   url := fmt.Sprintf("http://127.0.0.1:8000/typing_challenge?idx=%d", idx)
   res, err := http.Get(url)
   check(err)
@@ -54,8 +54,6 @@ func fetch_challenge(idx int, srcPath string, dstPath string) {
   body, _ := ioutil.ReadAll(res.Body)
   err = json.Unmarshal(body, &cont)
   check(err)
-  pterm.DefaultBasicText.Println(cont.Src)
-  pterm.DefaultBasicText.Println(cont.Dst)
 
   file, err := os.Create(srcPath)
   check(err)
@@ -66,6 +64,7 @@ func fetch_challenge(idx int, srcPath string, dstPath string) {
   check(err)
   _, err = file.WriteString(cont.Dst)
   check(err)
+  ch <- true
 }
 
 
@@ -74,37 +73,47 @@ func main(){
   area, _ := pterm.DefaultArea.Start()
   fmt.Println("start")
 
-  // Countdown
-  for i := 3; i >= 0; i-- {
-    base_str := fmt.Sprintf("Foo %d", i)
-
-    str, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString(base_str)).Srender()
-    str = pterm.DefaultCenter.Sprint(str)
-    area.Update(str)
-
-    time.Sleep(time.Second)
-  }
-
-  chFetch := make(chan bool)
-    select {
-      case isFinish := <- chFetch:
-          pterm.DefaultBasicText.Println("FETCH DONE!!!")
-      default:
-    }
-
-
-  startTime := time.Now()
-
   srcPath := "i.txt"
   dstPath := "t.txt"
   filePath := "target.txt"
 
+  // fetcher
+  chFetch := make(chan bool)
+  // timer
+  ticker := time.NewTicker(time.Second)
+
+  go fetch_challenge(0, srcPath, dstPath, chFetch)
+
+  isFinish := false
+  count := 4
+
+  for {
+    select {
+      case _ = <- ticker.C:
+        count --
+        base_str := fmt.Sprintf("Foo %d", count)
+
+        // str, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString(base_str)).Srender()
+        // str = pterm.DefaultCenter.Sprint(str)
+        // area.Update(str)
+        pterm.DefaultBasicText.Println(base_str)
+      case isFinish = <- chFetch:
+        pterm.DefaultBasicText.Println("FETCH DONE!!!")
+      default:
+    }
+    if isFinish && count <= 0 {
+      break
+    }
+  }
+
+  pterm.DefaultBasicText.Println("START!")
+
+  startTime := time.Now()
+
+  // start
   cmd := exec.Command("cp", srcPath, filePath)
   _, err := cmd.Output()
   check(err)
-
-  // hogehogehoge
-  fetch_challenge(0, srcPath, dstPath)
 
   f, err := os.Open(filePath)
   check(err)
