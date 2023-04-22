@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from mangum import Mangum
 
 app = FastAPI()
+handler = Mangum(app)
 
 
 def read_file(filepath):
@@ -23,8 +25,8 @@ async def root():
 
 @app.get("/typing_challenge")
 async def get_typing_challenge(idx: int):
-    src_path = f"challenges/src/{idx}.txt"
+    src_path = f"../challenges/src/{idx}.txt"
     src_str = read_file(src_path)
-    dst_path = f"challenges/dst/{idx}.txt"
+    dst_path = f"../challenges/dst/{idx}.txt"
     dst_str = read_file(dst_path)
     return {"src": src_str, "dst": dst_str}

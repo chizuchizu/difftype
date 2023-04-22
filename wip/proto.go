@@ -44,7 +44,7 @@ func check_same_file(pathA string, pathB string) (bool) {
 }
 
 func fetch_challenge(idx int, srcPath string, dstPath string, ch chan bool) {
-  url := fmt.Sprintf("http://127.0.0.1:8000/typing_challenge?idx=%d", idx)
+  url := fmt.Sprintf("https://5yy10qutb4.execute-api.us-east-1.amazonaws.com/typing_challenge?idx=%d", idx)
   res, err := http.Get(url)
   check(err)
   defer res.Body.Close()
