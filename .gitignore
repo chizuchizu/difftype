@@ -21,4 +21,4 @@
 go.work
 
 */__pychace__/*
-.aws_sam
+.aws-sam
