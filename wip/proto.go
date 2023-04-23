@@ -13,6 +13,17 @@ import (
 	"github.com/rivo/tview"
 )
 
+const title_str = `
+╭━━━╮╱╭━╮╭━┳━━━━╮
+╰╮╭╮┃╱┃╭╯┃╭┫╭╮╭╮┃
+╱┃┃┃┣┳╯╰┳╯╰╋╯┃┃┣┫╱╭┳━━┳━━╮
+╱┃┃┃┣╋╮╭┻╮╭╯╱┃┃┃┃╱┃┃╭╮┃┃━┫
+╭╯╰╯┃┃┃┃╱┃┃╱╱┃┃┃╰━╯┃╰╯┃┃━┫
+╰━━━┻╯╰╯╱╰╯╱╱╰╯╰━╮╭┫╭━┻━━╯
+╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╭━╯┃┃┃
+╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╰━━╯╰╯
+`
+
 const start_str = `
 ╭━━━┳━━━━┳━━━┳━━━┳━━━━╮
 ┃╭━╮┃╭╮╭╮┃╭━╮┃╭━╮┃╭╮╭╮┃
@@ -115,20 +126,18 @@ func fetch_challenge(idx int, srcPath string, dstPath string, ch chan bool) {
 
 func show_diff(srcPath string, dstPath string) {
   for {
-    // result, _ := exec.Command("diff", "-u", srcPath, dstPath).Output()
-    // app.QueueUpdateDraw(func() {
-    //   diffView.Clear()
-    //   fmt.Fprint(diffView, string(result))
-    //   fmt.Fprint(diffView, "hogehoge")
-    // })
+    result, _ := exec.Command("diff", "-u", srcPath, dstPath).Output()
+    app.QueueUpdateDraw(func() {
+      diffView.Clear()
+      fmt.Fprint(diffView, string(result))
+    })
     time.Sleep(100 * time.Millisecond)
-    
   }
 
 }
 
 
-func run() {
+func run(c_num int) {
   srcPath := "i.txt"
   dstPath := "t.txt"
   filePath := "target.txt"
@@ -140,8 +149,8 @@ func run() {
   fmt.Println("hoge")
 
 
-  go show_diff(srcPath, dstPath)
-  go fetch_challenge(0, srcPath, dstPath, chFetch)
+  go show_diff(filePath, dstPath)
+  go fetch_challenge(c_num, srcPath, dstPath, chFetch)
 
   isFinish := false
   count := 3
@@ -151,6 +160,7 @@ func run() {
         count --
         app.QueueUpdateDraw(func() {
           textView.Clear()
+          fmt.Fprint(textView, title_str)
           fmt.Fprint(textView, num[count])
         })
       case isFinish = <- chFetch:
@@ -160,6 +170,7 @@ func run() {
     if isFinish && count <= 0 {
       app.QueueUpdateDraw(func() {
         textView.Clear()
+        fmt.Fprint(textView, title_str)
         fmt.Fprint(textView, start_str)
       })
       break
@@ -181,20 +192,8 @@ func run() {
     isSame := check_same_file(filePath, dstPath)
     if isSame {
       break
-    } else {
-
-      // show result on Window
-      app.QueueUpdateDraw(func() {
-        cmd = exec.Command("diff", "-u", "target.txt", "t.txt")
-        // exec command
-        result, _ := cmd.Output()
-        // _, _ = exec.Command("bash", "-c", "'echo " + string(result + '> hoge").Output()
-        diffView.Clear()
-        fmt.Fprint(diffView, string(result))
-      })
-
-      time.Sleep(100 * time.Millisecond)
     }
+
   }
 
   endTime := time.Now()
@@ -209,11 +208,14 @@ func run() {
 
 
 func main(){
+  var c_num int
+  fmt.Println("Select Challenge No")
+  fmt.Scan(&c_num)
   app = tview.NewApplication()
   textView = tview.NewTextView().SetRegions(true)
   diffView = tview.NewTextView().SetRegions(true).SetDynamicColors(true)
 
-  go run()
+  go run(c_num)
 	// レイアウトを作成する
 	flex := tview.NewFlex().
 		AddItem(textView, 0, 1, true).
