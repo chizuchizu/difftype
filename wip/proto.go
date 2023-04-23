@@ -24,10 +24,6 @@ type Post struct {
   Dst string `json:"dst"`
 }
 
-func (me *Post) String() string {
-  return fmt.Sprintf("\n===Src===\n%s \n ===Dst=== \n%s", me.Src, me.Dst)
-}
-
 
 func check_same_file(pathA string, pathB string) (bool) {
   contA, errA := ioutil.ReadFile(pathA)
@@ -70,7 +66,6 @@ func fetch_challenge(idx int, srcPath string, dstPath string, ch chan bool) {
 
 
 func main(){
-  area, _ := pterm.DefaultArea.Start()
   fmt.Println("start")
 
   srcPath := "i.txt"
@@ -93,9 +88,6 @@ func main(){
         count --
         base_str := fmt.Sprintf("Foo %d", count)
 
-        // str, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString(base_str)).Srender()
-        // str = pterm.DefaultCenter.Sprint(str)
-        // area.Update(str)
         pterm.DefaultBasicText.Println(base_str)
       case isFinish = <- chFetch:
         pterm.DefaultBasicText.Println("FETCH DONE!!!")
@@ -137,7 +129,5 @@ func main(){
   pterm.DefaultBasicText.Println(showStr)
   time.Sleep(1 * time.Millisecond)
 
-
-  area.Stop()
 
 }
