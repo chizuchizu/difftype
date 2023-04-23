@@ -60,6 +60,7 @@ var num = []string {
 var (
   app *tview.Application
   textView *tview.TextView
+  diffView *tview.TextView
 )
 
 func check(e error) {
@@ -112,6 +113,21 @@ func fetch_challenge(idx int, srcPath string, dstPath string, ch chan bool) {
   ch <- true
 }
 
+func show_diff(srcPath string, dstPath string) {
+  for {
+    // result, _ := exec.Command("diff", "-u", srcPath, dstPath).Output()
+    // app.QueueUpdateDraw(func() {
+    //   diffView.Clear()
+    //   fmt.Fprint(diffView, string(result))
+    //   fmt.Fprint(diffView, "hogehoge")
+    // })
+    time.Sleep(100 * time.Millisecond)
+    
+  }
+
+}
+
+
 func run() {
   srcPath := "i.txt"
   dstPath := "t.txt"
@@ -124,6 +140,7 @@ func run() {
   fmt.Println("hoge")
 
 
+  go show_diff(srcPath, dstPath)
   go fetch_challenge(0, srcPath, dstPath, chFetch)
 
   isFinish := false
@@ -165,29 +182,45 @@ func run() {
     if isSame {
       break
     } else {
+
+      // show result on Window
+      app.QueueUpdateDraw(func() {
+        cmd = exec.Command("diff", "-u", "target.txt", "t.txt")
+        // exec command
+        result, _ := cmd.Output()
+        // _, _ = exec.Command("bash", "-c", "'echo " + string(result + '> hoge").Output()
+        diffView.Clear()
+        fmt.Fprint(diffView, string(result))
+      })
+
       time.Sleep(100 * time.Millisecond)
     }
   }
 
   endTime := time.Now()
   elapsedTime := endTime.Sub(startTime)
-  fmt.Println(elapsedTime)
+
+  app.QueueUpdateDraw(func() {
+    fmt.Fprint(textView, "結果は〜〜")
+    fmt.Fprint(textView, elapsedTime)
+    fmt.Fprint(textView, "じゃ〜〜")
+  })
 }
 
 
 func main(){
   app = tview.NewApplication()
   textView = tview.NewTextView().SetRegions(true)
+  diffView = tview.NewTextView().SetRegions(true).SetDynamicColors(true)
 
   go run()
 	// レイアウトを作成する
 	flex := tview.NewFlex().
-		AddItem(textView, 0, 1, true)
+		AddItem(textView, 0, 1, true).
+    AddItem(diffView, 0, 1, true)
 
 	// アプリケーションを開始する
 	if err := app.SetRoot(flex, true).Run(); err != nil {
 		panic(err)
 	}
-
-
 }
