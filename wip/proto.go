@@ -9,9 +9,58 @@ import (
   "os"
   "os/exec"
   "encoding/json"
-  "github.com/pterm/pterm"
+  // "github.com/pterm/pterm"
+	"github.com/rivo/tview"
 )
 
+const start_str = `
+╭━━━┳━━━━┳━━━┳━━━┳━━━━╮
+┃╭━╮┃╭╮╭╮┃╭━╮┃╭━╮┃╭╮╭╮┃
+┃╰━━╋╯┃┃╰┫┃╱┃┃╰━╯┣╯┃┃╰╯
+╰━━╮┃╱┃┃╱┃╰━╯┃╭╮╭╯╱┃┃
+┃╰━╯┃╱┃┃╱┃╭━╮┃┃┃╰╮╱┃┃
+╰━━━╯╱╰╯╱╰╯╱╰┻╯╰━╯╱╰╯
+`
+
+var num = []string {
+  `
+  ╭━━━╮
+  ┃╭━╮┃
+  ┃┃┃┃┃
+  ┃┃┃┃┃
+  ┃╰━╯┃
+  ╰━━━╯
+  `,
+  `
+  ╱╭╮
+  ╭╯┃
+  ╰╮┃
+  ╱┃┃
+  ╭╯╰╮
+  ╰━━╯
+  `,
+  `
+  ╭━━━╮
+  ┃╭━╮┃
+  ╰╯╭╯┃
+  ╭━╯╭╯
+  ┃┃╰━╮
+  ╰━━━╯
+  `,
+  `
+  ╭━━━╮
+  ┃╭━╮┃
+  ╰╯╭╯┃
+  ╭╮╰╮┃
+  ┃╰━╯┃
+  ╰━━━╯
+  `,
+}
+
+var (
+  app *tview.Application
+  textView *tview.TextView
+)
 
 func check(e error) {
   if e != nil {
@@ -63,11 +112,7 @@ func fetch_challenge(idx int, srcPath string, dstPath string, ch chan bool) {
   ch <- true
 }
 
-
-
-func main(){
-  fmt.Println("start")
-
+func run() {
   srcPath := "i.txt"
   dstPath := "t.txt"
   filePath := "target.txt"
@@ -76,29 +121,33 @@ func main(){
   chFetch := make(chan bool)
   // timer
   ticker := time.NewTicker(time.Second)
+  fmt.Println("hoge")
+
 
   go fetch_challenge(0, srcPath, dstPath, chFetch)
 
   isFinish := false
-  count := 4
-
+  count := 3
   for {
     select {
       case _ = <- ticker.C:
         count --
-        base_str := fmt.Sprintf("Foo %d", count)
-
-        pterm.DefaultBasicText.Println(base_str)
+        app.QueueUpdateDraw(func() {
+          textView.Clear()
+          fmt.Fprint(textView, num[count])
+        })
       case isFinish = <- chFetch:
-        pterm.DefaultBasicText.Println("FETCH DONE!!!")
+        // pterm.DefaultBasicText.Println("FETCH DONE!!!")
       default:
     }
     if isFinish && count <= 0 {
+      app.QueueUpdateDraw(func() {
+        textView.Clear()
+        fmt.Fprint(textView, start_str)
+      })
       break
     }
   }
-
-  pterm.DefaultBasicText.Println("START!")
 
   startTime := time.Now()
 
@@ -122,12 +171,23 @@ func main(){
 
   endTime := time.Now()
   elapsedTime := endTime.Sub(startTime)
+  fmt.Println(elapsedTime)
+}
 
-  pterm.DefaultBasicText.Println("DONE!!!")
-  showStr := fmt.Sprintf("\n Time: %s", elapsedTime)
-  
-  pterm.DefaultBasicText.Println(showStr)
-  time.Sleep(1 * time.Millisecond)
+
+func main(){
+  app = tview.NewApplication()
+  textView = tview.NewTextView().SetRegions(true)
+
+  go run()
+	// レイアウトを作成する
+	flex := tview.NewFlex().
+		AddItem(textView, 0, 1, true)
+
+	// アプリケーションを開始する
+	if err := app.SetRoot(flex, true).Run(); err != nil {
+		panic(err)
+	}
 
 
 }
