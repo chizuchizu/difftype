@@ -1,7 +1,7 @@
 import numpy as np
 
-for i in range(i):
-  print(i)
+for i in range(9):
+  print(3)
   print("hogehoge")
   a = 1
   b = 2

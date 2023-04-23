@@ -1,0 +1,4 @@
+i = 2
+
+string = f"No. {i}"
+print(string)
